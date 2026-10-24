@@ -41,8 +41,8 @@
   opacity: 1;
 }
 
-main > section:not(#schedule)::before,
-main > section:not(#schedule)::after,
+main > section:not(#schedule):not(.registration-cta-section)::before,
+main > section:not(#schedule):not(.registration-cta-section)::after,
 footer::before {
   position: absolute;
   z-index: 1;
@@ -55,13 +55,13 @@ footer::before {
   backdrop-filter: blur(14px);
 }
 
-main > section:not(#schedule)::before {
+main > section:not(#schedule):not(.registration-cta-section)::before {
   top: 0;
   background: linear-gradient(to bottom, #0d0e11 0%, rgba(13, 14, 17, 0.72) 22%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.75) 35%, transparent 100%);
 }
 
-main > section:not(#schedule)::after,
+main > section:not(#schedule):not(.registration-cta-section)::after,
 footer::before {
   bottom: 0;
   background: linear-gradient(to bottom, transparent 0%, rgba(13, 14, 17, 0.72) 72%, #0d0e11 100%);
