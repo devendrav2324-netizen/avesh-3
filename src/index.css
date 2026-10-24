@@ -381,37 +381,6 @@ footer::before {
   }
 }
 
-.intro-logo-reveal {
-  animation:
-    intro-logo-arrive 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both,
-    intro-emblem-glow 2.6s ease-in-out 300ms infinite alternate;
-}
-
-@keyframes intro-logo-arrive {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes intro-emblem-glow {
-  from {
-    filter:
-      drop-shadow(0 0 5px rgba(255, 100, 46, 0.28))
-      drop-shadow(0 0 14px rgba(255, 100, 46, 0.18));
-  }
-  to {
-    filter:
-      drop-shadow(0 0 12px rgba(255, 100, 46, 0.8))
-      drop-shadow(0 0 38px rgba(255, 100, 46, 0.58))
-      drop-shadow(0 0 70px rgba(255, 100, 46, 0.24));
-  }
-}
-
 /* =====================================================
    shadcn/ui CSS Variables (dark theme — matches site palette)
    ===================================================== */
