@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { SCHEDULE_DATA } from "../data/festivalData";
 import { Clock, MapPin, User, ChevronDown } from "lucide-react";
 import { useSectionScrollFade } from "../hooks/useSectionScrollFade";
-import { useScrollDownActivation } from "../hooks/useScrollDownActivation";
 
 const DAYS = [
   { day: 1 as const, date: "27 OCTOBER", title: "TECHNICAL DAY 01", hours: "10 AM — 4 PM" },
@@ -15,26 +14,13 @@ const clamp = (value: number) => Math.min(1, Math.max(0, value));
 
 export const ScheduleSection: React.FC = () => {
   const { sectionRef, isVisible } = useSectionScrollFade();
-  const hasScrollActivated = useScrollDownActivation(sectionRef, 2);
-  const [animationReady, setAnimationReady] = useState(false);
   const [progress, setProgress] = useState(0);
   const activePosition = progress * (DAYS.length - 1);
   const activeDay = Math.min(DAYS.length - 1, Math.round(activePosition));
 
   useEffect(() => {
-    if (!hasScrollActivated) return;
-    const delay = window.setTimeout(() => setAnimationReady(true), 2000);
-    return () => window.clearTimeout(delay);
-  }, [hasScrollActivated]);
-
-  useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
-
-    if (!animationReady) {
-      setProgress(0);
-      return;
-    }
 
     const scrollDistance = section.offsetHeight - window.innerHeight;
     const activationStart = Math.max(0, -section.getBoundingClientRect().top);
@@ -57,7 +43,62 @@ export const ScheduleSection: React.FC = () => {
       window.removeEventListener("scroll", updateProgress);
       window.removeEventListener("resize", updateProgress);
     };
-  }, [animationReady]);
+  }, []);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || !isVisible) return;
+
+    const audio = new Audio("/assets/schedule-swipe.mp3");
+    audio.preload = "auto";
+
+    let wheelEndTimer = 0;
+    let wheelGestureActive = false;
+    let touchStartY: number | null = null;
+
+    const playSwipeSound = () => {
+      audio.currentTime = 0;
+      void audio.play().catch(() => {
+        // Browsers may block playback until a user gesture is registered.
+      });
+    };
+
+    const onWheel = (event: WheelEvent) => {
+      if (event.deltaY === 0) return;
+      if (!wheelGestureActive) {
+        wheelGestureActive = true;
+        playSwipeSound();
+      }
+      window.clearTimeout(wheelEndTimer);
+      wheelEndTimer = window.setTimeout(() => {
+        wheelGestureActive = false;
+      }, 350);
+    };
+
+    const onTouchStart = (event: TouchEvent) => {
+      touchStartY = event.touches[0]?.clientY ?? null;
+    };
+
+    const onTouchEnd = (event: TouchEvent) => {
+      const endY = event.changedTouches[0]?.clientY;
+      if (touchStartY !== null && endY !== undefined && Math.abs(touchStartY - endY) > 24) {
+        playSwipeSound();
+      }
+      touchStartY = null;
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: true });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+
+    return () => {
+      window.clearTimeout(wheelEndTimer);
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchend", onTouchEnd);
+      audio.pause();
+    };
+  }, [isVisible]);
 
   return (
     <section
@@ -66,7 +107,7 @@ export const ScheduleSection: React.FC = () => {
       className="relative bg-[#0d0e11]"
       style={{ height: `${DAYS.length * 100}svh` }}
     >
-      <div className={`section-scroll-fade sticky top-0 flex h-[100svh] flex-col overflow-hidden ${isVisible && animationReady ? "is-visible" : ""}`}>
+      <div className={`section-scroll-fade sticky top-0 flex h-[100svh] flex-col overflow-hidden ${isVisible ? "is-visible" : ""}`}>
         <video
           aria-hidden="true"
           autoPlay
@@ -140,7 +181,6 @@ export const ScheduleSection: React.FC = () => {
                         return (
                           <div
                             key={event.id}
-                            style={{ transitionDelay: visible ? `${eventIndex * 75}ms` : "0ms" }}
                             className={`flex flex-col gap-2 border border-white/15 bg-[#171717]/55 px-3 py-3 shadow-[0_10px_35px_rgba(0,0,0,0.24)] backdrop-blur-md transition-all duration-500 sm:flex-row sm:items-center sm:gap-4 sm:px-4 ${
                               visible ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"
                             }`}
